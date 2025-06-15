@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 #Etape 1 recuperer les actualités de sécurité
 import feedparser
@@ -12,6 +12,8 @@ from email.mime.text import MIMEText
 
 
 types=["alerte", "avis"]
+rows=[]
+
 #On recupère tous les types possibles.
 for type in types:
 
@@ -57,14 +59,23 @@ for type in types:
             cwe_desc = "Non disponible"
             problemtype = data["containers"]["cna"].get("problemTypes", {})
             if problemtype and "descriptions" in problemtype[0]:
-                cwe = problemtype[0]["descriptions"][0].get("cweId", "Non disponible")
-                cwe_desc = problemtype[0]["descriptions"][0].get("description", "Non disponible")
+                extract_cwe = problemtype[0]["descriptions"][0].get("cweId", "Non disponible")
+                cwe = extract_cwe if (extract_cwe and extract_cwe != "n/a") else "Non disponible"
+                extract_cwe_desc = problemtype[0]["descriptions"][0].get("description", "Non disponible")
+                cwe_desc = extract_cwe_desc if (extract_cwe_desc and extract_cwe_desc!="n/a") else "Non disponible"
 
             affected = data["containers"]["cna"]["affected"]
-            for product in affected:
-                vendor = product["vendor"]
-                product_name = product["product"]
-                versions = [v["version"] for v in product["versions"] if v["status"] == "affected"]
+            vendor="Non disponible"
+            product_name = "Non disponible"
+            versions = []
+            if len(affected) > 0:
+                for product in affected:
+                    if product["vendor"] and product["vendor"]!="n/a":
+                        vendor = product["vendor"]
+                    if product["product"] and product["product"]!="n/a":
+                        product_name = product["product"]
+                    extract_versions = [v["version"] for v in product["versions"] if v["status"] == "affected"]
+                    versions = extract_versions if extract_versions and "n/a" not in extract_versions else []
 
             description = data["containers"]["cna"]["descriptions"][0]["value"]
 
@@ -91,19 +102,29 @@ for type in types:
             print("")
             print("------------------------------")
 
+            d = {
+                "id": id,
+                "title": title,
+                "type": t,
+                "date": date,
+                "cve": name,
+                "cvss" : cvss_score,
+                "base severity": cvss_severity,
+                "cwe": cwe_desc,
+                "epss": epss,
+                "lien" : link,
+                "description": description,
+                "editeur": vendor,
+                "produit": product_name,
+                "versions": versions
+            }
+            rows.append(d)
+
 
 #Etape 4 regrouper toutes les infos dans un tableau
-df = pd.DataFrame([
-    {
-        "ID": "CERTFR-2024-ALE-001",
-        "CVE": "CVE-2023-24488",
-        "CVSS": 9.8,
-        "EPSS": 0.9,
-        "Produit": "Apache",
-        "Description": "Faille critique dans Apache...",
-        # etc.
-    }
-])
+df = pd.DataFrame(rows)
+df.to_csv("cve_ansi_enriched.csv", index=False)
+
 
 #Etape 5 faire des graphiques
 '''
