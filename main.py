@@ -90,7 +90,6 @@ for type in types:
 
 
 #Etape 4 regrouper toutes les infos dans un tableau
-
 df = pd.DataFrame([
     {
         "ID": "CERTFR-2024-ALE-001",
