@@ -4,13 +4,14 @@ import feedparser
 import requests
 import re
 import pandas as pd
+from math import *
 import matplotlib.pyplot as plt
 import smtplib
 from email.mime.text import MIMEText
 
 
 types=["alerte", "avis"]
-
+#On recupère tous les types possibles.
 for type in types:
 
     url = f"https://www.cert.ssi.gouv.fr/{type}/feed"
@@ -22,8 +23,52 @@ for type in types:
         t = type
         date = entry.published
 
-        url_cve = f"https://www.cert.ssi.gouv.fr/{type}/{id}/json/"
+        url_cves = f"https://www.cert.ssi.gouv.fr/{type}/{id}/json/"
+        response = requests.get(url_cves)
+        data = response.json()
 
+        vendor=data["affected_systems"][0]["product"]["vendor"]["name"]
+        ref_cves = data["cves"]
+        print("editeur:",vendor)
+        print("CVE référencés ", ref_cves)
+        for ref in ref_cves:
+            #on recupère le nom de chaque cve
+            name = ref["name"]
+            url = f"https://cveawg.mitre.org/api/cve/{name}"
+            response = requests.get(url)
+            data = requests.get(url).json()
+
+            metrics = data["containers"]["cna"].get("metrics", [])
+            cvss_score = "Non disponible"
+            cvss_severity = "Non disponible"
+
+
+            if metrics:
+                cvss_data = metrics[0].get("cvssV3_0")
+                if cvss_data:
+                    cvss_score = cvss_data.get("baseScore", "Non disponible")
+                    cvss_severity = cvss_data.get("baseSeverity", "Non disponible")
+                elif metrics[0].get("cvssV3_1"):
+                    cvss_data = metrics[0].get("cvssV3_1")
+                    cvss_score = cvss_data.get("baseScore", "Non disponible")
+                    cvss_severity = cvss_data.get("baseSeverity", "Non disponible")
+
+            cwe = "Non disponible"
+            cwe_desc = "Non disponible"
+            problemtype = data["containers"]["cna"].get("problemTypes", [])
+            if problemtype and "descriptions" in problemtype[0]:
+                cwe = problemtype[0]["descriptions"][0].get("cweId", "Non disponible")
+                cwe_desc = problemtype[0]["descriptions"][0].get("description", "Non disponible")
+
+            print("CVSS Score:", cvss_score)
+            print("Severity:", cvss_severity)
+            print("CWE ID:", cwe)
+            print("CWE Description:", cwe_desc)
+
+            url=f"https://api.first.org/data/v1/epss?cve={name}"
+            response = requests.get(url)
+            data = response.json()
+            epss=round(float(data["data"][0]["epss"]),3)
 
         link=entry.link
         description=entry.description
@@ -33,6 +78,7 @@ for type in types:
         print("Description:", entry.description)
         print("Lien :", entry.link)
         print("Date :", entry.published)
+        print("Epss :", epss)
 
 #Etape 2  trouver les failles CVE dans chaque bulletin
 
@@ -59,7 +105,8 @@ response = requests.get(url)
 data = requests.get(url).json()
 
 description = data["containers"]["cna"]["descriptions"][0]["value"]
-cvss_score = data["containers"]["cna"]["metrics"][0]["cvssV3_1"]["baseScore"]
+cvss_score = data["containers"]["cna"]["metrics"][0]["cvssV3_0"]["baseScore"]
+cvss_severity = data["containers"]["cna"]["metrics"][0]["cvssV3_0"]["baseSeverity"]
 
 # Extraire les produits affectés
 
