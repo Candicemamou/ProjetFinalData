@@ -1,3 +1,4 @@
+import datetime
 
 #Etape 1 recuperer les actualités de sécurité
 import feedparser
@@ -21,7 +22,9 @@ for type in types:
         id = entry.id.replace(f"https://www.cert.ssi.gouv.fr/{type}/", "").replace("/", "")
         title = entry.title
         t = type
-        date = entry.published
+        raw_date = entry.published
+        date_obj = datetime.strptime(raw_date, "%a, %d %b %Y %H:%M:%S %z")
+        date = date_obj.strftime("%Y-%m-%d")
         link = entry.link
 
         url_cves = f"https://www.cert.ssi.gouv.fr/{type}/{id}/json/"
