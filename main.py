@@ -27,6 +27,7 @@ for type in types:
         response = requests.get(url_cves)
         data = response.json()
 
+
         vendor=data["affected_systems"][0]["product"]["vendor"]["name"]
         ref_cves = data["cves"]
         print("editeur:",vendor)
