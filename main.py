@@ -12,6 +12,8 @@ url = "https://www.cert.ssi.gouv.fr/avis/feed"  # ou "https://www.cert.ssi.gouv.
 rss_feed = feedparser.parse(url)
 
 for entry in rss_feed.entries:
+    id = entry.id.replace("https://www.cert.ssi.gouv.fr/avis/", "").replace("/", "")
+    print(id)
     print("Titre :", entry.title)
     print("Description:", entry.description)
     print("Lien :", entry.link)
