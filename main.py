@@ -1,6 +1,12 @@
 
 #Etape 1 recuperer les actualités de sécurité
 import feedparser
+import requests
+import re
+import pandas as pd
+import matplotlib.pyplot as plt
+import smtplib
+from email.mime.text import MIMEText
 
 url = "https://www.cert.ssi.gouv.fr/avis/feed"  # ou "https://www.cert.ssi.gouv.fr/alerte/feed"
 rss_feed = feedparser.parse(url)
@@ -11,8 +17,6 @@ for entry in rss_feed.entries:
 
 #Etape 2  trouver les failles CVE dans chaque bulletin
 
-import requests
-import re
 
 url = "https://www.cert.ssi.gouv.fr/alerte/CERTFR-2024-ALE-001/json/"
 response = requests.get(url)
@@ -37,7 +41,7 @@ cvss_score = data["containers"]["cna"]["metrics"][0]["cvssV3_1"]["baseScore"]
 
 #Etape 4 regrouper toutes les infos dans un tableau
 
-import pandas as pd
+
 
 df = pd.DataFrame([
     {
@@ -52,15 +56,13 @@ df = pd.DataFrame([
 ])
 
 #Etape 5 faire des graphiques
-import matplotlib.pyplot as plt
+
 
 df['CVSS'].hist()
 plt.title("Distribution des scores CVSS")
 plt.show()
 
 #Etape 6 Envoyer un mail si une faille est grave
-import smtplib
-from email.mime.text import MIMEText
 
 def send_email(to_email, subject, body):
     from_email = "ton_email@gmail.com"
