@@ -1,4 +1,6 @@
+
 from datetime import datetime
+import time
 
 #Etape 1 recuperer les actualités de sécurité
 import feedparser
@@ -15,7 +17,7 @@ types=["alerte", "avis"]
 rows=[]
 
 #On recupère tous les types possibles.
-max= 3000
+max= 99999
 i=0
 try:
     for type in types:
@@ -40,9 +42,9 @@ try:
             response = requests.get(url_cves)
             data = response.json()
 
-            ref_cves = data.get("cves", [])
-            #print("CVE référencés ", ref_cves)
+            ref_cves = list(data.get("cves", []))
             for ref in ref_cves:
+                print(ref)
                 if i > max:
                     break
 
@@ -162,13 +164,13 @@ try:
                 }
                 rows.append(d)
                 i+=1
+                time.sleep(1)
 except Exception as e:
     print("Erreur attrapée :", e)
 
 #Etape 4 regrouper toutes les infos dans un tableau
 df = pd.DataFrame(rows)
 df.to_csv("cve_ansi_enriched.csv", index=False)
-
 
 #Etape 5 faire des graphiques
 '''
