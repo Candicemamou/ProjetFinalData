@@ -60,14 +60,34 @@ try:
                 cvss_score = "Non disponible"
                 cvss_severity = "Non disponible"
                 if metrics:
-                    cvss_data = metrics[0].get("cvssV3_0")
-                    if cvss_data:
-                        cvss_score = cvss_data.get("baseScore", "Non disponible")
-                        cvss_severity = cvss_data.get("baseSeverity", "Non disponible")
-                    elif metrics[0].get("cvssV3_1"):
-                        cvss_data = metrics[0].get("cvssV3_1")
-                        cvss_score = cvss_data.get("baseScore", "Non disponible")
-                        cvss_severity = cvss_data.get("baseSeverity", "Non disponible")
+                    for m in metrics:
+                        for version_key in ["cvssV3_1", "cvssV3_0", "cvssV2"]:
+                            cvss_data = m.get(version_key)
+                            if cvss_data:
+                                cvss_score = cvss_data.get("baseScore", "Non disponible")
+                                cvss_severity = cvss_data.get("baseSeverity", "Non disponible")
+                                break
+                        if cvss_score != "Non disponible":
+                            break
+
+                if cvss_score == "Non disponible" or cvss_severity == "Non disponible":
+                    adps = data.get("containers", {}).get("adp", [])
+
+                    for adp in adps:
+                        metrics = adp.get("metrics", [])
+                        for metric in metrics:
+                            for version_key in ["cvssV3_1", "cvssV3_0", "cvssV2"]:
+                                cvss = metric.get(version_key)
+                                if cvss:
+                                    if cvss_score == "Non disponible":
+                                        cvss_score = cvss.get("baseScore", "Non disponible")
+                                    if cvss_severity == "Non disponible":
+                                        cvss_severity = cvss.get("baseSeverity", "Non disponible")
+                                    break
+                            if cvss_score != "Non disponible" or cvss_severity != "Non disponible":
+                                break
+                        if cvss_score != "Non disponible" or cvss_severity != "Non disponible":
+                            break
 
                 cwe = "Non disponible"
                 cwe_desc = "Non disponible"
@@ -163,7 +183,6 @@ try:
                 }
                 rows.append(d)
                 i+=1
-                time.sleep(1)
 except Exception as e:
     print("Erreur attrapée :", e)
 

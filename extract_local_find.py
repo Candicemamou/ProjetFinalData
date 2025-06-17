@@ -19,14 +19,13 @@ try:
 
             file_path = os.path.join(folder_path, filename)
             with open(file_path, "r", encoding="utf-8") as f:
+
                 data = json.load(f)
 
             id = data.get("reference", "Non disponible")
             title = data.get("title", "Non disponible")
             date = data.get("revisions", [{}])[-1].get("revision_date", "Non disponible")[:10]
-
-            #link = next((l.get("url") for l in data.get("links", []) if l.get("url", "").startswith("https://www.cert.ssi.gouv.fr")), "Non disponible")
-            link = "https://www.cert.ssi.gouv.fr/avis/" + str(id) + "/"
+            link = next((l.get("url") for l in data.get("links", []) if l.get("url", "").startswith("https://www.cert.ssi.gouv.fr")), "Non disponible")
 
             for ref in data.get("cves", []):
                 name = ref.get("name")
@@ -44,35 +43,53 @@ try:
                 metrics = cna.get("metrics", [])
                 cvss_score = "Non disponible"
                 cvss_severity = "Non disponible"
+                cvss_score = "Non disponible"
+                cvss_severity = "Non disponible"
+                base_score_found = False
+                base_severity_found = False
+
                 if metrics:
                     for m in metrics:
                         for version_key in ["cvssV3_1", "cvssV3_0", "cvssV2"]:
                             cvss_data = m.get(version_key)
                             if cvss_data:
-                                cvss_score = cvss_data.get("baseScore", "Non disponible")
-                                cvss_severity = cvss_data.get("baseSeverity", "Non disponible")
+                                score = cvss_data.get("baseScore")
+                                severity = cvss_data.get("baseSeverity")
+                                if score is not None:
+                                    cvss_score = score
+                                    base_score_found = True
+                                if severity is not None:
+                                    cvss_severity = severity
+                                    base_severity_found = True
                                 break
-                        if cvss_score != "Non disponible":
+                        if base_score_found or base_severity_found:
                             break
 
-                if cvss_score == "Non disponible" or cvss_severity == "Non disponible":
-                    adps = mitre_data.get("containers", {}).get("adp", [])
+                # Recherche manuelle si aucune baseSeverity trouvée
+                if not base_score_found and not base_severity_found:
+                    def find_severity_in_json(data):
+                        if isinstance(data, dict):
+                            for v in data.values():
+                                result = find_severity_in_json(v)
+                                if result:
+                                    return result
+                        elif isinstance(data, list):
+                            for item in data:
+                                result = find_severity_in_json(item)
+                                if result:
+                                    return result
+                        elif isinstance(data, str):
+                            sev = data.upper()
+                            if sev in ["MEDIUM", "HIGH", "CRITICAL"]:
+                                return sev
+                        return None
 
-                    for adp in adps:
-                        metrics = adp.get("metrics", [])
-                        for metric in metrics:
-                            for version_key in ["cvssV3_1", "cvssV3_0", "cvssV2"]:
-                                cvss = metric.get(version_key)
-                                if cvss:
-                                    if cvss_score == "Non disponible":
-                                        cvss_score = cvss.get("baseScore", "Non disponible")
-                                    if cvss_severity == "Non disponible":
-                                        cvss_severity = cvss.get("baseSeverity", "Non disponible")
-                                    break
-                            if cvss_score != "Non disponible" or cvss_severity != "Non disponible":
-                                break
-                        if cvss_score != "Non disponible" or cvss_severity != "Non disponible":
-                            break
+
+                    found_severity = find_severity_in_json(mitre_data)
+                    if found_severity:
+                        cvss_severity = found_severity
+                        print(
+                            f"[INFO] CVE {name} → aucune baseScore/baseSeverity, mais trouvé : '{found_severity}' ailleurs dans le fichier.")
 
                 # CWE et description complète
                 cwe_id = "Non disponible"
@@ -162,11 +179,5 @@ try:
                 i += 1
 except Exception as e:
     print("Erreur attrapée :", e)
-
-# Export CSV
-
-print("Nombre total de lignes ajoutées à rows :", len(rows))
-df = pd.DataFrame(rows)
-df.to_csv("cve_ansi_enriched_local.csv", index=False)
 
 
