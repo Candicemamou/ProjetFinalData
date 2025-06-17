@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 import os
 import json
@@ -7,7 +8,6 @@ import pandas as pd
 types = ["alertes", "Avis"]
 base_path = "./data_pour_TD_final"
 rows = []
-max = 3000
 i = 0
 
 try:
@@ -16,8 +16,6 @@ try:
         filenames = sorted(os.listdir(folder_path))
 
         for filename in filenames:
-            if i > max:
-                break
 
             file_path = os.path.join(folder_path, filename)
             with open(file_path, "r", encoding="utf-8") as f:
@@ -35,7 +33,7 @@ try:
 
                 # Charger les données MITRE locales
                 try:
-                    with open(os.path.join(base_path, "mitre", f"{name}.json"), "r", encoding="utf-8") as f:
+                    with open(os.path.join(base_path, "mitre", f"{name}"), "r", encoding="utf-8") as f:
                         mitre_data = json.load(f)
                 except:
                     mitre_data = {}
@@ -86,7 +84,7 @@ try:
 
                 # Charger les données FIRST locales (EPSS)
                 try:
-                    with open(os.path.join(base_path, "first", f"{name}.json"), "r", encoding="utf-8") as f:
+                    with open(os.path.join(base_path, "first", f"{name}"), "r", encoding="utf-8") as f:
                         epss_data = json.load(f)
                     epss_list = epss_data.get("data", [])
                     epss = round(float(epss_list[0].get("epss", 0)), 6) if epss_list else "Non disponible"
@@ -108,7 +106,17 @@ try:
                     if desc and desc not in versions:
                         versions.append(desc)
 
-                print(f"\nID ANSSI: {id}\nTitre: {title}\nType: {t}\nDate: {date}\nCVE: {name}\nCVSS: {cvss_score}\nBase Severity: {cvss_severity}\nCWE ID: {cwe_id}\nCWE Desc: {cwe_desc}\nEPSS: {epss}\nLien: {link}\nDescription: {description}\nRéférences: {references}\nÉditeur: {', '.join(vendors)}\nProduit: {', '.join(products)}\nVersions: {versions}\n------------------------------")
+                if len(vendors) > 0 and vendors[0]=="N/A":
+                    vendors[0] = "Non disponible"
+                if len(products) > 0 and products[0]=="N/A":
+                    products[0] = "Non disponible"
+
+
+                #print(f"\nID ANSSI: {id}\nTitre: {title}\nType: {t}\nDate: {date}\nCVE: {name}\nCVSS: {cvss_score}\nBase Severity: {cvss_severity}\nCWE ID: {cwe_id}\nCWE Desc: {cwe_desc}\nEPSS: {epss}\nLien: {link}\nDescription: {description}\nRéférences: {references}\nÉditeur: {', '.join(vendors)}\nProduit: {', '.join(products)}\nVersions: {versions}\n------------------------------")
+                if t=="alertes":
+                    t="alerte"
+                elif t=="Avis":
+                    t="avis"
 
                 d = {
                     "id": id,
@@ -118,22 +126,26 @@ try:
                     "cve": name,
                     "cvss": cvss_score,
                     "base severity": cvss_severity,
-                    "cwe id": cwe_id,
                     "cwe": cwe_desc,
                     "epss": epss,
                     "lien": link,
                     "description": description,
-                    "references": "; ".join(references),
-                    "editeur": ", ".join(vendors),
-                    "produit": ", ".join(products),
-                    "versions": "; ".join(versions)
+                    "editeur": vendors[0] if vendors else "Non disponible",
+                    "produit": products[0] if products else "Non disponible",
+                    "versions": versions if versions else [],
                 }
                 rows.append(d)
                 i += 1
-
 except Exception as e:
     print("Erreur attrapée :", e)
 
 # Export CSV
+
+print("Nombre total de lignes ajoutées à rows :", len(rows))
 df = pd.DataFrame(rows)
+print("Nombre de lignes dans le DataFrame :", len(df))
+print("Nombre de CVE uniques :", df['cve'].nunique())
+print(df.head(5))
 df.to_csv("cve_ansi_enriched_local.csv", index=False)
+
+

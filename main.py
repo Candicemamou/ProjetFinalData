@@ -44,7 +44,6 @@ try:
 
             ref_cves = list(data.get("cves", []))
             for ref in ref_cves:
-                print(ref)
                 if i > max:
                     break
 
