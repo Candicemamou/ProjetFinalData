@@ -156,16 +156,14 @@ try:
                     "cve": name,
                     "cvss": cvss_score,
                     "base severity": cvss_severity,
-                    "cwe id": cwe_id,
                     "cwe": cwe_desc,
                     "epss": epss,
                     "percentile": percentile,
                     "lien": link,
                     "description": description,
-                    "references": "; ".join(references),
-                    "editeur": ", ".join(vendors),
-                    "produit": ", ".join(products),
-                    "versions": "; ".join(versions)
+                    "editeur": vendors[0] if len(vendors)>0 else "Non disponible",
+                    "produit": products[0] if len(products)>0 else "Non disponible",
+                    "versions": versions
                 }
 
                 rows.append(d)

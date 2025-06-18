@@ -192,7 +192,7 @@ except Exception as e:
 
 #Etape 4 regrouper toutes les infos dans un tableau
 df = pd.DataFrame(rows)
-df.to_csv("cve_ansi_enriched.csv", index=False)
+df.to_csv("cve_ansi_enriched_web.csv", index=False)
 
 #Etape 5 faire des graphiques
 '''
