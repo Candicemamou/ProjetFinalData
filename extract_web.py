@@ -139,13 +139,15 @@ try:
                 resp = requests.get(url).json()
 
                 epss = "Non disponible"
+                percentile = "Non disponible"
                 epss_list = resp.get("data", [])
                 if epss_list:
-                    val = epss_list[0].get("epss")
                     try:
-                        epss = round(float(val), 3)
+                        epss = round(float(epss_list[0].get("epss", 0)), 6)
+                        percentile = round(float(epss_list[0].get("percentile", 0)), 6)
                     except (TypeError, ValueError):
                         epss = "Non disponible"
+                        percentile = "Non disponible"
 
                 print("")
                 print("ID ANSSI:",id)
@@ -157,6 +159,7 @@ try:
                 print("Base Severity:", cvss_severity)
                 print("CWE:", cwe_desc)
                 print("EPSS:", epss)
+                print("Percentile:", percentile)
                 print("Lien:",link)
                 print("Description:",description)
                 print("Editeur:", vendor)
@@ -175,6 +178,7 @@ try:
                     "base severity": cvss_severity,
                     "cwe": cwe_desc,
                     "epss": epss,
+                    "percentile": percentile,
                     "lien" : link,
                     "description": description,
                     "editeur": vendor,
