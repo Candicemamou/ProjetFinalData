@@ -108,9 +108,15 @@ try:
                     with open(os.path.join(base_path, "first", f"{name}"), "r", encoding="utf-8") as f:
                         epss_data = json.load(f)
                     epss_list = epss_data.get("data", [])
-                    epss = round(float(epss_list[0].get("epss", 0)), 6) if epss_list else "Non disponible"
+                    if epss_list:
+                        epss = round(float(epss_list[0].get("epss", 0)), 6)
+                        percentile = round(float(epss_list[0].get("percentile", 0)), 6)
+                    else:
+                        epss = "Non disponible"
+                        percentile = "Non disponible"
                 except:
                     epss = "Non disponible"
+                    percentile = "Non disponible"
 
                 # Infos produit/éditeur (ANSSI)
                 vendors = []
@@ -150,14 +156,18 @@ try:
                     "cve": name,
                     "cvss": cvss_score,
                     "base severity": cvss_severity,
+                    "cwe id": cwe_id,
                     "cwe": cwe_desc,
                     "epss": epss,
+                    "percentile": percentile,
                     "lien": link,
                     "description": description,
-                    "editeur": vendors[0] if vendors else "Non disponible",
-                    "produit": products[0] if products else "Non disponible",
-                    "versions": versions if versions else [],
+                    "references": "; ".join(references),
+                    "editeur": ", ".join(vendors),
+                    "produit": ", ".join(products),
+                    "versions": "; ".join(versions)
                 }
+
                 rows.append(d)
                 i += 1
 except Exception as e:
@@ -167,6 +177,6 @@ except Exception as e:
 
 print("Nombre total de lignes ajoutées à rows :", len(rows))
 df = pd.DataFrame(rows)
-df.to_csv("cve_ansi_enriched_local.csv", index=False)
+df.to_csv("cve_ansi_enriched_local.csv", index=False,encoding="utf-8")
 
 
