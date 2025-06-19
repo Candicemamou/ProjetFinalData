@@ -17,7 +17,7 @@ types=["alerte", "avis"]
 rows=[]
 
 #On recupère tous les types possibles.
-max= 2
+max= 9999999
 i=0
 try:
     for type in types:
@@ -59,6 +59,7 @@ try:
                 metrics = cna.get("metrics", [])
                 cvss_score = "Non disponible"
                 cvss_severity = "Non disponible"
+                cvss_vector = "Non disponible"
                 if metrics:
                     for m in metrics:
                         for version_key in ["cvssV3_1", "cvssV3_0", "cvssV2"]:
@@ -66,6 +67,7 @@ try:
                             if cvss_data:
                                 cvss_score = cvss_data.get("baseScore", "Non disponible")
                                 cvss_severity = cvss_data.get("baseSeverity", "Non disponible")
+                                cvss_vector   = cvss_data.get("vectorString","Non disponible")
                                 break
                         if cvss_score != "Non disponible":
                             break
@@ -83,6 +85,7 @@ try:
                                         cvss_score = cvss.get("baseScore", "Non disponible")
                                     if cvss_severity == "Non disponible":
                                         cvss_severity = cvss.get("baseSeverity", "Non disponible")
+                                    cvss_vector = cvss.get("vectorString", "Non disponible")
                                     break
                             if cvss_score != "Non disponible" or cvss_severity != "Non disponible":
                                 break
@@ -179,6 +182,7 @@ try:
                     "cwe": cwe_desc,
                     "epss": epss,
                     "percentile": percentile,
+                    "vector" : cvss_vector,
                     "lien" : link,
                     "description": description,
                     "editeur": vendor,
@@ -194,62 +198,4 @@ except Exception as e:
 df = pd.DataFrame(rows)
 df.to_csv("cve_ansi_enriched_web.csv", index=False)
 
-#Etape 5 faire des graphiques
-#Etape 7 Model Machine Learning
-# → Aller sur la page html
-import webbrowser
-print("********************************************************")
-print("Voulez vous ouvrir la page html pour voir les étapes 5 et 7 ? (y/n)")
-reponse = input().lower()
-if reponse == 'y':
-    fichier = "visualisation_cve_etape5.html"
-    webbrowser.open_new_tab(fichier)
-else:
-    print("Page non ouverte.")
 
-
-#Etape 6 Envoyer un mail si une faille est grave
-import csv
-
-# Liste d'abonnés (fictifs - on a créé une adresse mail)
-subscribers = [
-    {"email": "noname.test122333@gmail.com", "editeur": "Microsoft", "product": "Windows Server 2012 R2 (Server Core installation)"},
-]
-dfs = pd.DataFrame(subscribers)
-dfs.to_csv('subscribers.csv', index = False)
-
-def send_email(to_email, subject, body):
-    from_email = "noname.test122333@gmail.com"
-    password = "wyjkkiclvvezyige"
-
-    msg = MIMEText(body)
-    msg["Subject"] = subject
-    msg["From"] = from_email
-    msg["To"] = to_email
-
-    server = smtplib.SMTP("smtp.gmail.com", 587)
-    server.starttls()
-    server.login(from_email, password)
-    server.sendmail(from_email, to_email, msg.as_string()) 
-    server.quit()
-
-alertes = df[df['cvss'] >= 9.0]
-
-for row in alertes.itertuples():
-    subject = f"Alerte CVE critique : {row.id}"
-    body = (
-        f"Alerte de sécurité : {row.title}\n\n"
-        f"Produit concerné : {row.produit}\n"
-        f"Éditeur : {row.editeur}\n"
-        f"Date de l'alerte : {row.date}\n"
-        f"Identifiant CVE : {row.cve}\n\n"
-        f"Description :\n{row.description}\n\n"
-        f"Pour plus d'informations, consultez le lien suivant : {row.lien}\n\n"
-        f"Veuillez informer votre service informatique afin qu’il prenne les mesures nécessaires pour corriger cette vulnérabilité."
-    )
-
-    abonnes = dfs[(dfs['editeur'] == row.editeur) & (dfs['product'] == row.produit)]
-
-    for dest in abonnes['email']:
-        send_email(dest, subject, body)
-        print(" Un mail d'alerte a été envoyé à :", dest)

@@ -44,6 +44,7 @@ try:
                 metrics = cna.get("metrics", [])
                 cvss_score = "Non disponible"
                 cvss_severity = "Non disponible"
+                cvss_vector = "Non disponible"
                 if metrics:
                     for m in metrics:
                         for version_key in ["cvssV3_1", "cvssV3_0", "cvssV2"]:
@@ -51,6 +52,7 @@ try:
                             if cvss_data:
                                 cvss_score = cvss_data.get("baseScore", "Non disponible")
                                 cvss_severity = cvss_data.get("baseSeverity", "Non disponible")
+                                cvss_vector = cvss_data.get("vectorString", "Non disponible")
                                 break
                         if cvss_score != "Non disponible":
                             break
@@ -68,6 +70,7 @@ try:
                                         cvss_score = cvss.get("baseScore", "Non disponible")
                                     if cvss_severity == "Non disponible":
                                         cvss_severity = cvss.get("baseSeverity", "Non disponible")
+                                    cvss_vector = cvss.get("vectorString", "Non disponible")
                                     break
                             if cvss_score != "Non disponible" or cvss_severity != "Non disponible":
                                 break
@@ -159,6 +162,7 @@ try:
                     "cwe": cwe_desc,
                     "epss": epss,
                     "percentile": percentile,
+                    "vector" : cvss_vector,
                     "lien": link,
                     "description": description,
                     "editeur": vendors[0] if len(vendors)>0 else "Non disponible",
