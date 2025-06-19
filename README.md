@@ -1,6 +1,6 @@
 # Projet Mastercamp 2025 – Dashboard de Vulnérabilités ANSSI & Analyse Machine Learning
 
-## 📄 Présentation du projet
+##  Présentation du projet
 
 Ce projet a pour objectif la création d'une plateforme de suivi et d'analyse des vulnérabilités de cybersécurité publiées par l'ANSSI. Elle est composée de plusieurs grandes parties :
 
@@ -12,7 +12,7 @@ Ce projet a pour objectif la création d'une plateforme de suivi et d'analyse de
 
 ---
 
-## 📚 Structure du projet
+##  Structure du projet
 
 ```
 ProjetFinalData/
@@ -29,7 +29,7 @@ ProjetFinalData/
 
 ---
 
-## ⚙️ Installation rapide
+##  Installation rapide
 
 ### 1. Créer et activer un environnement Python
 
@@ -65,7 +65,7 @@ Rendez-vous sur `http://127.0.0.1:8000` pour accéder au dashboard.
 
 ---
 
-## 📅 Récupération & enrichissement des données
+##  Récupération & enrichissement des données
 
 Trois scripts principaux sont à exécuter pour extraire et enrichir les données :
 
@@ -89,7 +89,7 @@ Trois scripts principaux sont à exécuter pour extraire et enrichir les donnée
 ![img_3.png](readme_img/img_3.png)
 ---
 
-## 📊 Visualisations & Analyse exploratoire
+##  Visualisations & Analyse exploratoire
 
 Un notebook Jupyter est fourni avec plusieurs visualisations clés pour analyser les vulnérabilités :
 
@@ -104,7 +104,7 @@ Ces visualisations permettent de prioriser les vulnérabilités critiques et d�
 ![img_2.png](readme_img/img_2.png)
 ---
 
-## 🧬 Machine Learning appliqué
+##  Machine Learning appliqué
 
 Le projet intègre une étude de machine learning sur les vulnérabilités :
 
@@ -122,7 +122,7 @@ Ces modèles permettent d'explorer la possibilité d'automatiser l'analyse de ri
 
 ---
 
-## 🌟 Fonctionnalités Django
+##  Fonctionnalités Django
 
 * **Dashboard lisible** listant toutes les vulnérabilités
 * **Suppression d’entrées** directement via l’interface
@@ -141,7 +141,7 @@ python manage.py check_alerts_loop
 ![img_1.png](readme_img/img_1.png)
 ---
 
-## 📊 Objectifs pédagogiques
+##  Objectifs pédagogiques
 
 * Maitrise de l’ETL Python (extraction, nettoyage, enrichissement)
 * Utilisation d’API sécurité (MITRE, FIRST)
@@ -150,8 +150,8 @@ python manage.py check_alerts_loop
 
 ---
 
-## 🎓 Crédit
+##  Crédit
 
 Projet réalisé dans le cadre du **Mastercamp 2025**
 
-📅 Juin 2025  | ⚖️ Projet Collectif
+ Juin 2025  |  Projet Collectif
