@@ -22,14 +22,57 @@ def cve_list(request):
 
 
 from django.shortcuts import render, redirect
-from .forms import SubscriberForm
+from .forms import SubscriptionForm
 
 def subscribe(request):
     if request.method == 'POST':
-        form = SubscriberForm(request.POST)
+        form = SubscriptionForm(request.POST)
         if form.is_valid():
             form.save()
-            return render(request, 'subscribe_success.html')
+            return redirect('subscribe_success')
     else:
-        form = SubscriberForm()
+        form = SubscriptionForm()
     return render(request, 'subscribe.html', {'form': form})
+
+
+def subscribe_success(request):
+    return render(request, 'subscribe_success.html')
+
+from django.http import JsonResponse
+
+def get_products(request):
+    editeur = request.GET.get('editeur')
+    produits = list(
+        CVEEntry.objects
+        .filter(editeur=editeur)
+        .exclude(produit__isnull=True).exclude(produit='')
+        .values_list('produit', flat=True)
+        .distinct()
+        .order_by('produit')
+    )
+    return JsonResponse({'produits': produits})
+
+def get_severities(request):
+    editeur = request.GET.get('editeur')
+    produit = request.GET.get('produit')
+
+    severities = (
+        CVEEntry.objects.filter(editeur=editeur, produit=produit)
+        .values_list('base_severity', flat=True)
+        .distinct()
+    )
+    severities = sorted(set(s for s in severities if s))  # Nettoyage
+
+    return JsonResponse({'severities': severities})
+
+
+from django.shortcuts import get_object_or_404, redirect
+from django.views.decorators.http import require_POST
+from django.contrib import messages
+
+@require_POST
+def delete_cve(request, pk):
+    cve = get_object_or_404(CVEEntry, pk=pk)
+    cve.delete()
+    messages.success(request, f"{cve.cve} supprimé avec succès.")
+    return redirect('cve_list')
