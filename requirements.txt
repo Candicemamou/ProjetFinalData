@@ -1,0 +1,31 @@
+# Fichier requirements.txt pour Projet Mastercamp 2025
+
+# Core web framework
+Django==4.2.23
+
+# Data processing
+pandas>=1.5
+numpy>=1.23
+
+# Visualisation
+matplotlib>=3.5
+seaborn>=0.12
+
+# Web / API
+requests>=2.31
+feedparser>=6.0
+
+# Machine Learning
+scikit-learn>=1.3
+
+# Notebook
+jupyter>=1.0
+
+# Optionnel (pour éviter des crashs JSON/regex)
+python-dateutil>=2.8.2
+
+# Utilisé dans les notebooks pour pipeline et NLP
+scipy>=1.9
+
+# UTF-8 encoding standard
+chardet>=5.1
